@@ -110,4 +110,4 @@ O Bootstrap, os ícones e as fontes (Bricolage Grotesque e Instrument Sans) fica
 então o site funciona sem depender de CDN e sem etapa de build de front-end.
 
 ---
-Feito por: Jean Okabe Rezende Piton, Matheus Zanon Caritá e equipe.
+Feito por: Giovani Belini, Jean Okabe Rezende Piton, Matheus Zanon Caritá, Victor Roston.
