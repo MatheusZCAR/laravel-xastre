@@ -7,9 +7,8 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
-     *
-     * @return void
+     * Usuarios do portal: coordenacao, professores e alunos ficam na mesma
+     * tabela e se diferenciam pela coluna "papel".
      */
     public function up()
     {
@@ -17,15 +16,18 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->boolean('role')->nullable();
-            $table->string('UsuarioOficial')->nullable();
-            $table->string('FilmeFavorito')->nullable();
-            $table->string('cep')->nullable();
+            $table->string('papel', 20)->index(); // coordenacao | professor | aluno
+            $table->string('ra', 20)->nullable()->unique(); // matricula do aluno
+            $table->string('cpf', 11)->nullable()->unique();
+            $table->date('data_nascimento')->nullable();
+            $table->string('telefone', 20)->nullable();
+            $table->string('filme_favorito')->nullable();
+            $table->string('cep', 8)->nullable();
             $table->string('rua')->nullable();
+            $table->string('numero', 20)->nullable();
             $table->string('bairro')->nullable();
-            $table->string('uf')->nullable();
             $table->string('cidade')->nullable();
-            $table->string('CPF')->nullable();
+            $table->string('uf', 2)->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
@@ -33,11 +35,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
         Schema::dropIfExists('users');

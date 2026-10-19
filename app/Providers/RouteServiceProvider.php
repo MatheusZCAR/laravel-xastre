@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @var string
      */
-    public const HOME = '/dashboard';
+    public const HOME = '/painel';
 
     /**
      * Define your route model bindings, pattern filters, and other route configuration.
@@ -27,6 +28,11 @@ class RouteServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->configureRateLimiting();
+
+        // {aluno} e {professor} nas rotas so encontram usuarios daquele papel:
+        // /coordenacao/alunos/5 da 404 se o usuario 5 for um professor.
+        Route::bind('aluno', fn ($id) => User::alunos()->findOrFail($id));
+        Route::bind('professor', fn ($id) => User::professores()->findOrFail($id));
 
         $this->routes(function () {
             Route::middleware('api')

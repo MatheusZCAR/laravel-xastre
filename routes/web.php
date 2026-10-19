@@ -1,99 +1,54 @@
 <?php
 
+use App\Http\Controllers\Aluno\PainelController as AlunoPainel;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Coordenacao\AlunoController;
+use App\Http\Controllers\Coordenacao\CursoController;
+use App\Http\Controllers\Coordenacao\PainelController as CoordenacaoPainel;
+use App\Http\Controllers\Coordenacao\ProfessorController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PerfilController;
+use App\Http\Controllers\Professor\PainelController as ProfessorPainel;
 use Illuminate\Support\Facades\Route;
-
-use App\Http\Controllers\AdminController;
-
-use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| Rotas do portal
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
+| Nao existe cadastro publico: quem cadastra alunos e professores e a
+| coordenacao, dentro do painel dela.
 */
-/*iniciando o use dos controllers*/
 
-use App\Http\Controllers\AlunoController;
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
-use App\Http\Controllers\ProfessorController;
-
-use App\Http\Controllers\MateriaController;
-
-use App\Http\Controllers\UserController;
-
-/* rota da pagina inicial */
-Route::get('/', function () {
-    return view('welcome');
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [LoginController::class, 'create'])->name('login');
+    Route::post('/login', [LoginController::class, 'store']);
 });
 
-Route::middleware(['middleware'=>'PreventBackHistory'])->group(function(){
-    Auth::routes();
+Route::middleware(['auth', 'PreventBackHistory'])->group(function () {
+    Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+    Route::get('/painel', [HomeController::class, 'painel'])->name('painel');
+
+    Route::get('/perfil', [PerfilController::class, 'show'])->name('perfil');
+    Route::put('/perfil/senha', [PerfilController::class, 'senha'])->name('perfil.senha');
+
+    // Coordenacao: administra cursos, alunos e professores
+    Route::middleware('papel:coordenacao')->prefix('coordenacao')->name('coordenacao.')->group(function () {
+        Route::get('/', CoordenacaoPainel::class)->name('painel');
+        Route::resource('cursos', CursoController::class);
+        Route::resource('alunos', AlunoController::class);
+        Route::resource('professores', ProfessorController::class)->parameters(['professores' => 'professor']);
+    });
+
+    // Professor: ve os cursos que leciona e as turmas
+    Route::middleware('papel:professor')->prefix('professor')->name('professor.')->group(function () {
+        Route::get('/', [ProfessorPainel::class, 'index'])->name('painel');
+        Route::get('/cursos/{curso}', [ProfessorPainel::class, 'curso'])->name('curso');
+    });
+
+    // Aluno: ve os proprios cursos
+    Route::middleware('papel:aluno')->prefix('aluno')->name('aluno.')->group(function () {
+        Route::get('/', AlunoPainel::class)->name('painel');
+    });
 });
-
-
-Route::group(['prefix'=>'admin', 'middleware' =>['isAdmin','auth','PreventBackHistory']], function(){
-    Route::get('dashboard', [AdminController::class,'index'])->name('admin.dashboard');
-    Route::get('profile', [AdminController::class, 'profile'])->name('admin.profile');
-    Route::get('settings', [AdminController::class, 'settings'])->name('admin.settings');
-});
-
-Route::group(['prefix'=>'user', 'middleware' =>['isUser','auth','PreventBackHistory']], function(){
-    Route::get('dashboard', [UserController::class,'index'])->name('user.dashboard');
-    Route::get('profile', [UserController::class, 'profile'])->name('user.profile');
-    Route::get('settings', [UserController::class, 'settings'])->name('user.settings');
-});
-
-
-
-
-/* rota da pagina de login do aluno */
-Route::get('/alunos', function () {
-    return view('alunos');
-});
-
-/* rota da pagina logada do aluno */
-Route::get('/area_do_aluno/{id}', [AlunoController::class, 'index'] );
-
-/* rota da pagina de login do professor */
-Route::get('/professores', function () {
-    return view('professor');
-
-});
-
-/* rota da pagina logada do professor */
-Route::get('/area_do_professor/{id}', [ProfessorController::class, 'index'] );
-
-/* rota da pagina de login da cordenação */
-Route::get('/coordenação', function () {
-    return view('coordenação');
-});
-
-/* rota da pagina logada da cordenação */
-Route::get('/area_da_coordenação/{id}', function () {
-    return view('area_da_coordenação');
-});
-
-/* rota para a pagina de criar nova materia */
-Route::get('/criar_novo_curso', function () {
-    return view('criar_novo_curso');
-});
-/* rota a logica da laravel na parte de controller */
-Route::post('/criar_novo_curso', [MateriaController::class, 'store'] );
-
-
-Route::get('/user/{id}', [UserController::class, 'show'] );
-
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-require __DIR__.'/auth.php';
-
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
