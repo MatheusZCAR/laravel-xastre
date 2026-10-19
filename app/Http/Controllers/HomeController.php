@@ -2,27 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Curso;
+use App\Models\User;
 
 class HomeController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
-    /**
-     * Show the application dashboard.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
+    /** Pagina inicial publica: apresenta a escola e os cursos oferecidos. */
     public function index()
     {
-        return view('home');
+        $cursos = Curso::with('professor')->withCount('alunos')->orderBy('nome')->get();
+
+        return view('welcome', [
+            'cursos' => $cursos,
+            'totalAlunos' => User::alunos()->count(),
+        ]);
+    }
+
+    /** /painel leva cada pessoa ao painel do seu papel. */
+    public function painel()
+    {
+        return redirect(auth()->user()->rotaPainel());
     }
 }
